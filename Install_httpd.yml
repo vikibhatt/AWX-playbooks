@@ -1,18 +1,25 @@
 ---
-- name: Install and configure HTTP server
+- name: Uninstall Apache HTTP server
   hosts: all
   become: true
   gather_facts: true
 
   tasks:
 
-    - name: Install Apache on Debian/Ubuntu
+    - name: Stop and disable Apache
+      ansible.builtin.service:
+        name: apache2
+        state: stopped
+        enabled: false
+      when: ansible_os_family == "Debian"
+
+    - name: Remove Apache package
       ansible.builtin.apt:
         name: apache2
         state: absent
         update_cache: true
       when: ansible_os_family == "Debian"
 
-    - name: Display Apache service status
+    - name: Display uninstall status
       ansible.builtin.debug:
-        msg: "Web server uninstalled successfully"
+        msg: "Apache web server uninstalled successfully"
