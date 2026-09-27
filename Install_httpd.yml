@@ -1,23 +1,32 @@
-- name: Try Apache removal and show full error
-  ansible.builtin.command:
-    cmd: apt-get remove -y apache2
-  register: apache_remove
-  failed_when: false
+---
+- name: Diagnose Apache removal
+  hosts: all
+  become: true
+  gather_facts: true
 
-- name: Show apt stdout
-  ansible.builtin.debug:
-    var: apache_remove.stdout_lines
+  tasks:
 
-- name: Show apt stderr
-  ansible.builtin.debug:
-    var: apache_remove.stderr_lines
+    - name: Try Apache removal
+      ansible.builtin.command:
+        cmd: apt-get remove -y apache2
+      register: apache_remove
+      failed_when: false
+      changed_when: apache_remove.rc == 0
 
-- name: Show dpkg status
-  ansible.builtin.command:
-    cmd: dpkg --audit
-  register: dpkg_audit
-  changed_when: false
+    - name: Show apt stdout
+      ansible.builtin.debug:
+        var: apache_remove.stdout_lines
 
-- name: Display dpkg audit
-  ansible.builtin.debug:
-    var: dpkg_audit.stdout_lines
+    - name: Show apt stderr
+      ansible.builtin.debug:
+        var: apache_remove.stderr_lines
+
+    - name: Check dpkg status
+      ansible.builtin.command:
+        cmd: dpkg --audit
+      register: dpkg_audit
+      changed_when: false
+
+    - name: Display dpkg audit
+      ansible.builtin.debug:
+        var: dpkg_audit.stdout_lines
