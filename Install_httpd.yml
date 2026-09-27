@@ -1,32 +1,25 @@
 ---
-- name: Diagnose Apache removal
+- name: Uninstall Apache HTTP server
   hosts: all
   become: true
   gather_facts: true
 
   tasks:
+    - name: Stop and disable Apache
+      ansible.builtin.service:
+        name: apache2
+        state: stopped
+        enabled: false
+      when: ansible_os_family == "Debian"
 
-    - name: Try Apache removal
-      ansible.builtin.command:
-        cmd: apt-get remove -y apache2
-      register: apache_remove
-      failed_when: false
-      changed_when: apache_remove.rc == 0
+    - name: Remove Apache package
+      ansible.builtin.apt:
+        name: apache2
+        state: absent
+        update_cache: true
+      when: ansible_os_family == "Debian"
 
-    - name: Show apt stdout
+    - name: Display uninstall status
       ansible.builtin.debug:
-        var: apache_remove.stdout_lines
-
-    - name: Show apt stderr
-      ansible.builtin.debug:
-        var: apache_remove.stderr_lines
-
-    - name: Check dpkg status
-      ansible.builtin.command:
-        cmd: dpkg --audit
-      register: dpkg_audit
-      changed_when: false
-
-    - name: Display dpkg audit
-      ansible.builtin.debug:
-        var: dpkg_audit.stdout_lines
+        msg: "Web server uninstalled successfully"
+        msg: "Apache web server uninstalled successfully"
