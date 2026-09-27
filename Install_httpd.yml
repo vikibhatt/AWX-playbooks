@@ -1,23 +1,40 @@
 ---
-- name: Uninstall Apache HTTP server
+- name: Repair packages and uninstall Apache
   hosts: all
   become: true
   gather_facts: true
 
   tasks:
 
-    - name: Stop and disable Apache
+    - name: Repair interrupted dpkg configuration
+      ansible.builtin.command:
+        cmd: dpkg --configure -a
+      environment:
+        DEBIAN_FRONTEND: noninteractive
+
+    - name: Fix broken package dependencies
+      ansible.builtin.apt:
+        state: fixed
+        update_cache: true
+
+    - name: Stop Apache
       ansible.builtin.service:
         name: apache2
         state: stopped
         enabled: false
       when: ansible_os_family == "Debian"
 
-    - name: Remove Apache package
+    - name: Purge Apache
       ansible.builtin.apt:
         name: apache2
         state: absent
-        update_cache: true
+        purge: true
+      when: ansible_os_family == "Debian"
+
+    - name: Remove unused Apache dependencies
+      ansible.builtin.apt:
+        autoremove: true
+        purge: true
       when: ansible_os_family == "Debian"
 
     - name: Display uninstall status
