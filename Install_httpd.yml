@@ -1,42 +1,23 @@
----
-- name: Repair packages and uninstall Apache
-  hosts: all
-  become: true
-  gather_facts: true
+- name: Try Apache removal and show full error
+  ansible.builtin.command:
+    cmd: apt-get remove -y apache2
+  register: apache_remove
+  failed_when: false
 
-  tasks:
+- name: Show apt stdout
+  ansible.builtin.debug:
+    var: apache_remove.stdout_lines
 
-    - name: Repair interrupted dpkg configuration
-      ansible.builtin.command:
-        cmd: dpkg --configure -a
-      environment:
-        DEBIAN_FRONTEND: noninteractive
+- name: Show apt stderr
+  ansible.builtin.debug:
+    var: apache_remove.stderr_lines
 
-    - name: Fix broken package dependencies
-      ansible.builtin.apt:
-        state: fixed
-        update_cache: true
+- name: Show dpkg status
+  ansible.builtin.command:
+    cmd: dpkg --audit
+  register: dpkg_audit
+  changed_when: false
 
-    - name: Stop Apache
-      ansible.builtin.service:
-        name: apache2
-        state: stopped
-        enabled: false
-      when: ansible_os_family == "Debian"
-
-    - name: Purge Apache
-      ansible.builtin.apt:
-        name: apache2
-        state: absent
-        purge: true
-      when: ansible_os_family == "Debian"
-
-    - name: Remove unused Apache dependencies
-      ansible.builtin.apt:
-        autoremove: true
-        purge: true
-      when: ansible_os_family == "Debian"
-
-    - name: Display uninstall status
-      ansible.builtin.debug:
-        msg: "Apache web server uninstalled successfully"
+- name: Display dpkg audit
+  ansible.builtin.debug:
+    var: dpkg_audit.stdout_lines
