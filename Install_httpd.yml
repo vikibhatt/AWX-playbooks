@@ -1,4 +1,3 @@
-```yaml
 ---
 - name: Install and configure HTTP server
   hosts: all
@@ -40,4 +39,3 @@
     - name: Display Apache service status
       ansible.builtin.debug:
         msg: "Web server installation completed successfully"
-```
