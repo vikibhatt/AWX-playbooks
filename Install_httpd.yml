@@ -23,5 +23,3 @@
       ansible.builtin.debug:
         msg: "Web server uninstalled successfully"
         msg: "Apache web server uninstalled successfully"
-
-        
